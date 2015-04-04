@@ -19,15 +19,17 @@ out old packets if they arrive out of order. Sending `00:00` in every message wo
     
 ### Set RGB
     
+    count = 00:00
     r = red byte
     g = green byte
     b = blue byte
     fade = 01 to fade to colour, 00 change immediately to colour
       
-    write 0x0012: 00:08:00:06:00:0a:03:00:01:[fade]:00:[r]:[g]:[b]:00:00:00:00
+    write 0x0012: [count]:00:06:00:0a:03:00:01:[fade]:00:[r]:[g]:[b]:00:00:00:00
 
 ### Set warmth/brightness (natural lighting)
 
+    count = 00:00
     w = warmth byte
     b = brightness byte
     fade = 01 to fade to colour, 00 change immediately to colour
@@ -36,6 +38,7 @@ out old packets if they arrive out of order. Sending `00:00` in every message wo
     
 ### Set advertising name
 
+    count = 00:00
     name = name string
     len = length of chars in name
     
