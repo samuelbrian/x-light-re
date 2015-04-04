@@ -1,58 +1,94 @@
-# X-Light BLE LED light bulb by 
-
-## Info
+# X-Light BLE LED light bulb
 
 The X-Light by [We-Smart](http://www.we-smart.cn/) is an LED light bulb controlled over Bluetooth Low Energy. 
 The control application is available for [Android](https://play.google.com/store/apps/details?id=com.ws.up) and iOS, but
-the control protocol is undocumented.
+the control protocol is undocumented. 
 
-## Attribute Table
+## Commands
 
-Handle | Type (hex)     | Type (description)                  | Value                   | Value (description)       | Permissions
--------|----------------|-------------------------------------|-------------------------|-------------------------- |-------------
-0x0001 | 0x2800         | GATT Primary Service Declaration    | 0x1800                  | Generic Access Service    | r
-0x0002 | 0x2803         | GATT Characteristic Declaration     | 02:03:00:00:2a          | Device Name (2a00)        | r
-0x0003 | 0x2a00         | Device Name                         |                         |                           | r
-0x0004 | 0x2803         | GATT Characteristic Declaration     | 02:05:00:01:2a          | Appearance (2a01)         | r
-0x0005 | 0x2a01         | Appearance                          | 00:00                   |                           | r
-0x0006 | 0x2803         | GATT Characteristic Declaration     | 0a:07:00:02:2a          | PPF (2a02)                | r
-0x0007 | 0x2a02         | Peripheral Privacy Flag             | 00                      |                           | r/w
-0x0008 | 0x2803         | GATT Characteristic Declaration     | 08:09:00:03:2a          | Recon. Addr. (2a03)       | r
-0x0009 | 0x2a03         | Reconnection Address                |                         |                           | w
-0x000a | 0x2803         | GATT Characteristic Declaration     | 02:0b:00:04:2a          | PPCP (2a04)               | r
-0x000b | 0x2a04         | Periph. Preferred Connection Params | 50:00:a0:00:00:00:e8:03 |                           | r
-0x000c | 0x2800         | GATT Primary Service Declaration    | 0x1801                  | Generic Attribute Service | r
-0x000d | 0x2803         | GATT Characteristic Declaration     | 20:0e:00:05:2a          | Device Changed (2a05)     | r
-0x000e | 0x2a05         | Service Changed                     |                         |                           | i? 
-0x000f | 0x2902         | Client Characteristic Configuration | 00:00                   | Write 1 to enable notif.? | r/w
-0x0010 | 0x2800         | GATT Primary Service Declaration    | 0xf371                  | X-Light Service           | r
-0x0011 | 0x2803         | GATT Characteristic Declaration     | 0a:12:00:f1:ff          |                           | r
-0x0012 | 0xfff1         | ???                                 |                         |                           | w
-0x0013 | 0x2901         | Characteristic User Description     | "C1"                    |                           | r
-0x0014 | 0x2803         | GATT Characteristic Declaration     | 0a:15:00:f2:ff          |                           | r
-0x0015 | 0xfff2         | ???                                 |                         |                           | w
-0x0016 | 0x2901         | Characteristic User Description     | "C2"                    |                           | r
-0x0017 | 0x2803         | GATT Characteristic Declaration     | 0a:18:00:f3:ff          |                           | r 
-0x0018 | 0xfff3         | ???                                 |                         |                           | w
-0x0019 | 0x2901         | Characteristic User Description     | "C3"                    |                           | r
-0x001a | 0x2803         | GATT Characteristic Declaration     | 0a:1b:00:f4:ff          |                           | r
-0x001b | 0xfff4         | ???                                 |                         |                           | w
-0x001c | 0x2901         | Characteristic User Description     | "C4"                    |                           | r
-0x001d | 0x2803         | GATT Characteristic Declaration     | 0a:1e:00:f5:ff          |                           | r
-0x001e | 0xfff5         | ???                                 | ? 18 bytes              |                           | r
-0x001f | 0x2901         | Characteristic User Description     | "C5"                    |                           | r 
-0x0020 | 0x2803         | GATT Characteristic Declaration     | 0a:21:00:f6:ff          |                           | r 
-0x0021 | 0xfff6         | ???                                 | ? 18 bytes              |                           | r  
-0x0022 | 0x2901         | Characteristic User Description     | "C6"                    |                           | r 
-0x0023 | 0x2803         | GATT Characteristic Declaration     | 0a:24:00:f7:ff          |                           | r 
-0x0024 | 0xfff7         | ???                                 | ? 18 bytes              |                           | r
-0x0025 | 0x2901         | Characteristic User Description     | "C7"                    |                           | r
-0x0026 | 0x2803         | GATT Characteristic Declaration     | 0a:27:00:f8:ff          |                           | r 
-0x0027 | 0xfff8         | ???                                 | ? 18 bytes              |                           | r
-0x0028 | 0x2901         | Characteristic User Description     | "C8"                    |                           | r
-0x0029 | 0x2803         | GATT Characteristic Declaration     | 10:2a:00:f9:ff          |                           | r
-0x002a | 0xfff9         | ???                                 | ? 18 bytes              |                           | r
-0x002b | 0x2902         | Client Characteristic Configuration | 00:00                   |                           | r/w?
-0x002c | 0x2901         | Characteristic User Description     | "C9"                    |                           | r
+Data written to the `0x0012` handle has a trailing two-byte message counter `count`, presumably so the X-Light can throw
+out old packets if they arrive out of order. Sending `00:00` in every message works.
 
-**Note:** Permissions for X-Light characteristics were guessed based on whether they were *able* to be read - ones that are recorded as 'r' may in fact be 'r/w'. 
+### Light on/off
+    
+    count = 00:00
+    to turn on:   value = 00
+    to turn off:  value = 01
+    
+    write 0x0012: [count]:00:06:00:02:00:[value]:00:00:00:00:00:00:00:00:00:00
+    
+### Set RGB
+    
+    r = red byte
+    g = green byte
+    b = blue byte
+    fade = 01 to fade to colour, 00 change immediately to colour
+      
+    write 0x0012: 00:08:00:06:00:0a:03:00:01:[fade]:00:[r]:[g]:[b]:00:00:00:00
+
+### Set warmth/brightness (natural lighting)
+
+    w = warmth byte
+    b = brightness byte
+    fade = 01 to fade to colour, 00 change immediately to colour
+
+    write 0x0012: [count]:00:06:00:0a:03:00:01:[fade]:00:00:00:00:[w]:[b]:00:00
+    
+### Set advertising name
+
+    name = name string
+    len = length of chars in name
+    
+    write 0x0012: [count]:00:06:00:07:05:[len]:[name]:[pad 00 so total packet is 18 bytes]
+    
+For example:
+  
+    Set name to "bulbasaur"
+    write 0x0012: 01:2a:00:06:00:0b:05:[09]:[62:75:6c:62:61:73:61:75:72]:[00]
+ 
+### Sequences
+
+The X-Light phone app allows setting fading/flashing sequences of colours (e.g. heartbeat). 
+This sometimes uses writes to handles 0x0012, 0x0015, 0x0018, 0x001b, and reads to handles 0x001e, 0x0021, 0x0024.  
+I haven't investigated the details, but for reference here are some sniffed message exchanges:
+
+Purple Breathing:
+
+    write 0x0015: ff:a6:f7:00:00:3a:32:ff:73:e1:00:00:3a:32:ff:a6:ec:00
+    write 0x0018: 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+    write 0x0012: 00:61:00:06:00:1f:03:80:04:0b:32:ff:73:f2:00:00:3a:32
+    
+Multi-colour Breathing:
+
+    write 0x0015: 00:00:00:00:00:03:01:01:ff:00:00:00:03:07:00:00:00:00
+    write 0x0018: 00:03:01:00:02:ff:00:00:03:07:00:00:00:00:00:03:01:ff
+    write 0x001b: 00:ff:00:00:03:07:00:00:00:00:00:00:00:00:00:00:00:00
+    write 0x0012: 00:63:00:06:00:3b:03:80:08:03:01:ff:00:00:00:00:03:07
+    
+Blue pulse: 
+
+    write 0x0015: 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+    write 0x0012: 00:72:00:06:00:11:03:80:02:07:00:01:00:ff:00:00:07:05
+
+Green pulse: 
+
+    write 0x0015: 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+    write 0x0012: 00:71:00:06:00:11:03:80:02:07:00:01:ff:00:00:00:07:05
+
+Red pulse:
+
+    write 0x0015: 01:00:ff:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+    write 0x0012: 00:6e:00:06:00:11:03:80:02:00:0c:ff:00:00:00:00:00:0c
+
+### After connection
+
+After connection, the app writes the phone's Bluetooth name over two handles, e.g. for "GT-9100":
+
+    write 0x0015: [2d:49:39:31:30:30]:00:00:00:00:00:00:00:00:00:00:00:00 ["-9100"]
+    write 0x0012: 00:05:00:00:00:12:00:00:00:01:4c:73:36:d0:bb:08:[47:54] ["GT"]
+            
+Every so often, the app performs some reads:
+            
+    read 0x001e: 34:9a:84:23:1e:65:ac:ec:ad:b5:4a:a0:b2:4e:28:cc:ad:ea
+    
+I don't know what this means.
